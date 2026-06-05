@@ -10,6 +10,14 @@ public class SimpleController : MonoBehaviour
     private CharacterController controller;
     private Camera cam;
     private float verticalRotation = 0f;
+    private CarController _nearestCar;
+
+    [Header("Interaction")]
+    [Tooltip("How close the player must be to mount the car.")]
+    public float interactDistance = 3f;
+ 
+    [Tooltip("Key the player presses to enter/exit the car.")]
+    public KeyCode mountKey = KeyCode.F;
 
     void Start()
     {
@@ -42,5 +50,36 @@ public class SimpleController : MonoBehaviour
         move.y = Physics.gravity.y;
 
         controller.Move(move * moveSpeed * Time.deltaTime);
+
+        //carr
+        DetectNearbyCar();
+ 
+        if (_nearestCar != null && Input.GetKeyDown(mountKey))
+            _nearestCar.Mount(transform);
+    }
+
+    private void DetectNearbyCar()
+    {
+        // Simple overlap sphere — efficient enough for most games
+        Collider[] hits = Physics.OverlapSphere(transform.position, interactDistance);
+ 
+        CarController found = null;
+        foreach (Collider col in hits)
+        {
+            CarController car = col.GetComponentInParent<CarController>();
+            if (car != null)
+            {
+                found = car;
+                break;
+            }
+        }
+ 
+        _nearestCar = found;
+    }
+ 
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, interactDistance);
     }
 }
